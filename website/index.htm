@@ -1,0 +1,203 @@
+<html>
+
+<head>
+
+<title>CyNetworkBMA</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<link rel="stylesheet" type="text/css" href="styles.css">
+
+</head>
+
+<body>
+
+<h1>CyNetworkBMA</h1>
+
+<p>CyNetworkBMA is a Cytoscape app for inferring gene regulatory networks from expression data using the regression-based Bayesian Model Averaging (BMA) algorithm. Internally, it uses functionality provided by the <a href="http://www.bioconductor.org/packages/release/bioc/html/networkBMA.html">networkBMA</a> package.</p>
+
+<p>
+<div><a href="#installation">Installation</a></div>
+<div><a href="#inference">Inferring a Network</a></div>
+<div><a href="#advanced">Advanced Options</a></div>
+<div><a href="#assessment">Assessing a Network</a></div>
+<div><a href="#files">Sample Files</a></div>
+<div><a href="#links">Links</a></div>
+<div><a href="#references">References</a></div>
+</p>
+
+<a name="installation"><h2>Installation</h2></a>
+
+<h3>Downloading and installing the app</h3>
+
+<p>CyNetworkBMA requires Cytoscape version 3.1.0 or later. You can download Cytoscape from <a href="http://www.cytoscape.org/">www.cytoscape.org</a>.</p>
+<p>CyNetworkBMA is available on Cytoscape App Store and can be installed using the App Manager (<span class="uiCommand">Apps &#x2192; App Manager</span>).</p>
+
+<h3>Installing R</h3>
+
+<p>You will need to have R installed on the local machine or a remote server. R can be downloaded from <a href="http://www.r-project.org/">www.r-project.org</a>.</p>
+
+<h3>Installing R packages (Bioconductor, networkBMA, Rserve and igraph)</h3>
+
+<p>
+In R, run:
+
+<div class="code">source("http://bioconductor.org/biocLite.R")</div>
+<div class="code">biocLite("networkBMA")</div>
+<br>
+<div class="code">install.packages(c("Rserve","igraph"))</div>
+</p>
+
+<p>If you run R on a remote machine, be sure to <a href="http://rforge.net/Rserve/doc.html#conf">enable remote access</a> in Rserve and configure the firewall accordingly.</p>
+
+<h3>Starting the R server</h3>
+
+<p>
+Start R and type:
+
+<div class="code">library(Rserve)</div>
+<div class="code">Rserve()</div>
+</p>
+
+<a name="inference"><h2>Inferring a Network</h2></a>
+
+<p>Load your input data into a table by going to <span class="uiCommand">File &#x2192; Import &#x2192; Table &#x2192; File...</span> (sample files can be found <a href="#files">here</a>). The file must have a key column and each row has to have a unique identifier (key). In the dialog window, choose the option to import data into an unassigned table.</p>
+
+<img src="targettable.png" alt="Target table">
+
+<p>To run the network inference algorithm, go to <span class="uiCommand">Apps &#x2192; CyNetworkBMA &#x2192; Infer Network...</span>. A dialog window will pop up.</p>
+
+<img src="main.png" alt="Main dialog">
+
+<h3>R server</h3>
+
+<p>Connection parameters for the R server. If you run a local R server, leave the default parameters unchanged. If your server requires authentication, select the checkbox and provide username and password.</p>
+
+<h3>Data source</h3>
+
+<p>Table and the columns to provide as an input to the algorithm. By default, all non-key columns in the table are used.</p>
+
+<h3>Source format</h3>
+
+<p>Format of the input table. If the table contains time series data, the number of rows should be a multiple of the number of time points, and rows should be grouped by a cell line or replicate. Each group should contain the same number of ordered time points.</p>
+
+<h3>Network name</h3>
+
+<p>The name of the network as will appear in Cytoscape.</p>
+
+<h3>Running the inference algorithm</h3>
+
+<p>When you click OK, CyNetworkBMA will create a job and submit it to the R server. You can use Cytoscape while the job is running. The app will notify you upon job completion. You can see all in-progress and finished jobs by going to <span class="uiCommand">Apps &#x2192; CyNetworkBMA &#x2192; Show Jobs...</span>. It is possible to have more than one job running at the same time. However, an R server running on Windows can handle only one connection at a time because the Rserve implementation for that platform is more limited. At present, it is not possible to terminate a running job from Cytoscape, but you can kill the Rserve process that runs the algorithm on the R side (on Windows, closing R will have the same effect).</p>
+
+<a name="advanced"><h2>Advanced Options</h2></a>
+
+<p>This dialog lets you fine-tune parameters passed to networkBMA when defaults suggested by the app are not appropriate (e.g. when the input file is particularly large).</p>
+
+<img src="advanced.png" alt="Advanced dialog">
+
+<h3>ScanBMA</h3>
+
+<p>ScanBMA is an efficient algorithm for searching model space that uses the Occam's window principle to quickly discard models with low predictive quality (Young et al., 2014).</p>
+
+<p>
+<div><span class="param">OR</span>: A number specifying the maximum ratio for excluding models in Occam's window.</div>
+<div><span class="param">useg</span>: Indicates whether to use Zellner's g-prior in model likelihood evaluation. If disabled, ScanBMA will use BIC to approximate the likelihood.</div>
+<div><span class="param">thresProbne0</span>: Threshold (in percent) for the posterior probability that each variable is has a non-zero coefficient (in percent). Variables with posterior probability less than thresProbne0 are removed in future BMA iterations.</div>
+<div><span class="param">optimize</span>: Indicates whether to optimize g using an iterative EM algorithm or use a fixed value of g.</div>
+<div><span class="param">g0</span>: An initial value of g to use if <span class="param">optimize</span> is enabled, or the fixed value to use without optimization.</div>
+<div><span class="param">iterlim</span>: The maximum number of iterations of the EM algorithm to use.</div>
+<div><span class="param">epsilon</span>: The precision with which to find g using the EM algorithm. </div>
+</p>
+
+<h3>iBMA</h3>
+
+<p>Iterative BMA is an older heuristic for selecting the best set of models (Lo et al., 2012).</p>
+
+<p>
+<div><span class="param">OR</span>: A number specifying the maximum ratio for excluding models in Occam's window.</div>
+<div><span class="param">nbest</span>: A positive integer specifying the number of models of each size to be considered by leaps-and-bounds in determining the model space for Bayesian Model Averaging.</div>
+<div><span class="param">maxNvar</span>: A positive integer specifying the maximum number of variables (excluding the intercept) used in each iteration of BMA.</div>
+<div><span class="param">thresProbne0</span>: Threshold (in percent) for the posterior probability that each variable is has a non-zero coefficient (in percent). Variables with posterior probability less than thresProbne0 are removed in future BMA iterations.</div>
+<div><span class="param">keepModels</span>: A logical value indicating whether or not to keep the BMA models from all of the iterations and apply Occam's window using OR at the end, or to apply Occam's window in all BMA iterations and return the final model. Enabling this option requires more memory and may slow the computation as a result.</div>
+<div><span class="param">maxIter</span>: A positive integer giving a limit on the number of iterations.</div>
+</p>
+
+<h3>nvar and ordering</h3>
+
+<p>
+<div><span class="param">nvar</span>: The number of top-ranked (see <span class="param">ordering</span>) genes to be considered in the modeling. If the checkbox is not selected, all genes will be considered. Setting a large value will increase computation time.</div>
+<div><span class="param">ordering</span>: The ordering to be used for the genes or variables.</div>
+</p>
+
+<h3>Prior probabilities</h3>
+
+<p>
+<div><span class="param">None</span>: No prior information will be used in modeling the network.</div>
+<div><span class="param">Constant</span>: The probability of a regulator-gene pair in the network.</div>
+<div><span class="param">From table</span>: A matrix in which the (i,j) entry is the estimated prior probability that gene i regulates gene j.</div>
+</p>
+
+<h3>Edge probability threshold</h3>
+
+<p>The minimum posterior probability (in percent) for an edge to be included in the final network.</p>
+
+<a name="assessment"><h2>Assessing a Network</h2></a>
+
+<p>CyNetworkBMA can generate various assessment statistics for the inferred network if a reference network is available from another source (e.g. curated database or literature). To run network assessment, load the reference network (<span class="uiCommand">File &#x2192; Import &#x2192; Network &#x2192; File...</span>) and go to <span class="uiCommand">Apps &#x2192; CyNetworkBMA &#x2192; Assess Network...</span>.</p>
+
+<img src="assess.png" alt="Assessment dialog">
+
+<h3>R server</h3>
+
+<p>Connection parameters for the R server.</p>
+
+<h3>Network to assess</h3>
+
+<p>The inferred network to assess and the name of the column in the edge table that corresponds to edge probability. If edges in the network have no probability attribute, the probability is assumed to be 1.</p>
+
+<h3>Reference network</h3>
+
+<p>The network consisting of known regulatory relationships.</p>
+
+<p>When you click OK, CyNetworkBMA will run the assessment algorithm and display a results window once finished.</p>
+
+<img src="scores.png" alt="Assessment scores">
+
+<p>The slider lets you vary the probability threshold above which an edge is included in the network under assessment. You can export the raw scores corresponding to each distinct edge probability in the network by going to <span class="uiCommand">Tools &#x2192; Save Current Tab...</span>.</p>
+
+<p>The other two tabs show the ROC (receiver operating characteristic) and precision-recall curves. You can export each curve to an image file by using the <span class="uiCommand">Save Current Tab...</span> function.</p>
+
+<a name="files"><h2>Sample Files</h2></a>
+
+<ul>
+<li><a href="brem.txt">brem.txt</a>: An 85 by 111 subset of the data used for network inference in yeast (Brem et al. 2002, Brem and Kruglyak 2005). The rows correspond to genes and the columns to experiments. Provided courtesy of Rachel Brem.</li>
+<li><a href="timeSeries.txt">timeSeries.txt</a>: A 582 by 102 table in which the first two columns identify the replicate and time (in minutes) after drug perturbation, and the remaining 100 columns are the expression measurements for a subset of 100 genes from the yeast-rapamycin experiment described in Yeung et al. (2011). There are 582/6 = 97 replicates (the 95 segregants plus two parental strains of the segregants), each with measurements at 6 time points. The complete time series data is available from Array Express (Parkinson et al. 2007) with accession number <a href="http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-412">E-MTAB-412</a>. <em>When using this file, please remember to adjust source format in the inference dialog. Also, exclude replicate and time columns from input to the algorithm.</em></li>
+<li><a href="reg.prob.txt">reg.prob.txt</a>: A 100 by 100 matrix, giving probability estimates for regulatory relationships in which the (i, j) entry gives the estimated probability that gene i regulates gene j. These were computed using the supervised framework integrating multiple data sources of Lo et al. (2012).</li>
+<li><a href="referencePairs.txt">referencePairs.txt</a>: A 2-column table giving 287 regulator-gene pairs among the selected set of 100 genes reported from the literature. In this yeast example, the reference network was extracted from the documented evidence from the YEASTRACT database (Teixeira et al. 2006), which includes curated regulatory relationships from the literature inferred from high-throughput experiments.</li>
+</ul>
+
+<a name="links"><h2>Links</h2></a>
+
+<ul>
+<li><a href="https://github.com/WebDataScience/CyNetworkBMA">CyNetworkBMA source code</a> [not yet published]</li>
+<li><a href="http://www.cytoscape.org/">Cytoscape</a></li>
+<li><a href="http://www.r-project.org/">The R Project for Statistical Computing</a></li>
+<li><a href="http://www.bioconductor.org/packages/release/bioc/html/networkBMA.html">networkBMA – Regression-based network inference using Bayesian Model Averaging</a></li>
+<li><a href="http://rforge.net/Rserve/">Rserve – Binary R server</a></li>
+<li><a href="http://igraph.org/">igraph – Network analysis software</a></li>
+</ul>
+
+<a name="references"><h2>References</h2></a>
+
+<ul>
+<li>R. B. Brem and L. Kruglyak, “The landscape of genetic complexity across 5,700 gene expression traits in yeast,” <em>Proceedings of the National Academy of Sciences of the United States of America</em>, vol. 102, no. 5, pp. 1572–1577, 2005.</li>
+<li>R. B. Brem, “Genetic Dissection of Transcriptional Regulation in Budding Yeast,” <em>Science</em>, vol. 296, no. 5568, pp. 752–755, Apr. 2002.</li>
+<li>K. Lo, A. Raftery, K. Dombek, J. Zhu, E. Schadt, R. Bumgarner, and K. Y. Yeung, “Integrating external biological knowledge in the construction of regulatory networks from time-series expression data,” <em>BMC Systems Biology</em>, vol. 6, no. 1, p. 101, 2012.</li>
+<li>H. Parkinson, M. Kapushesky, M. Shojatalab, N. Abeygunawardena, R. Coulson, A. Farne, E. Holloway, N. Kolesnykov, P. Lilja, M. Lukk, R. Mani, T. Rayner, A. Sharma, E. William, U. Sarkans, and A. Brazma, “ArrayExpress--a public database of microarray experiments and gene expression profiles,” <em>Nucleic Acids Research</em>, vol. 35, no. Database, pp. D747–D750, Jan. 2007.</li>
+<li>M. C. Teixeira, “The YEASTRACT database: a tool for the analysis of transcription regulatory associations in Saccharomyces cerevisiae,” <em>Nucleic Acids Research</em>, vol. 34, no. 90001, pp. D446–D451, Jan. 2006.</li>
+<li>K. Y. Yeung, K. M. Dombek, K. Lo, J. E. Mittler, J. Zhu, E. E. Schadt, R. E. Bumgarner, and A. E. Raftery, “Construction of regulatory networks using expression time-series data of a genotyped population,” <em>Proceedings of the National Academy of Sciences</em>, vol. 108, no. 48, pp. 19436–19441, Nov. 2011.</li>
+<li>W. C. Young, A. E. Raftery, and K. Y. Yeung, “Fast Bayesian inference for gene regulatory networks using ScanBMA,” <em>BMC systems biology</em>, vol. 8, no. 1, p. 47, 2014.</li>
+</ul>
+
+</body>
+</html>
