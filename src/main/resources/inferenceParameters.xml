@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<parameters>
+	<timeSeries>false</timeSeries>
+	<numberOfTimePoints>2</numberOfTimePoints>
+	<algorithm>ScanBMA</algorithm>
+	<ScanBMA.OR>100</ScanBMA.OR>
+	<ScanBMA.useg>true</ScanBMA.useg>
+	<ScanBMA.optimize>true</ScanBMA.optimize>
+	<ScanBMA.iterlim>100</ScanBMA.iterlim>
+	<ScanBMA.epsilon>0.1</ScanBMA.epsilon>
+	<ScanBMA.thresProbne0>1</ScanBMA.thresProbne0>
+	<iBMA.OR>20</iBMA.OR>
+	<iBMA.nbest>10</iBMA.nbest>
+	<iBMA.maxNvar>30</iBMA.maxNvar>
+	<iBMA.thresProbne0>1</iBMA.thresProbne0>
+	<iBMA.keepModels>false</iBMA.keepModels>
+	<iBMA.maxIter>200000</iBMA.maxIter>
+	<ordering>bic1</ordering>
+	<constantPrior>true</constantPrior>
+	<priorProbConst>0.0005</priorProbConst>
+  <postProbThreshold>50</postProbThreshold>
+</parameters>
